@@ -1,1 +1,16 @@
 /**index.wxss**/
+.blank{
+    height:1px;
+    margin: 50px 0;
+}
+.line{
+    height: 10px;
+    width: 85%;
+    border-bottom: 1px solid gray;
+    margin-left: 10px;
+}
+.title{
+    font-size: large;
+    padding: 0 10px;
+    font-weight: 600;
+}

@@ -49,7 +49,7 @@
     "compileType": "miniprogram",
     "libVersion": "2.19.4",
     "appid": "wx33e50ed47b405453",
-    "projectname": "miniprogram-1",
+    "projectname": "ESP32-Light",
     "debugOptions": {
         "hidedInDevtools": []
     },

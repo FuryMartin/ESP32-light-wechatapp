@@ -18,8 +18,10 @@ Page({
       res.devices.forEach((device) => {
         // 这里可以做一些过滤
         console.log('Device Found', device)
-        if(device.deviceId == "58:BF:25:9D:51:0E"){
-          // 找到设备开始连接
+        //if(device.deviceId == "58:BF:25:9D:51:0E"){
+        if(device.name == "ESP32-light"){  
+        // 找到设备开始连接
+          this.info_connecting()
           this.bleConnection(device.deviceId);
           wx.stopBluetoothDevicesDiscovery()
         }
@@ -33,6 +35,7 @@ Page({
       mode: 'central',
       success: (res) => {
         // 开始搜索附近的蓝牙外围设备
+        this.info_finding()
         wx.startBluetoothDevicesDiscovery({
           allowDuplicatesKey: false,
         })
@@ -42,6 +45,7 @@ Page({
         wx.onBluetoothAdapterStateChange((res) => {
           if (!res.available) return
           // 开始搜寻附近的蓝牙外围设备
+          this.info_finding()
           wx.startBluetoothDevicesDiscovery({
             allowDuplicatesKey: false,
           })
@@ -62,6 +66,7 @@ Page({
       success: () => {
         // 连接成功，获取服务
         console.log('连接成功，获取服务')
+        this.info_connected()
         this.bleGetDeviceServices(deviceId)
       }
     })
@@ -194,6 +199,62 @@ Page({
       value: buffer,
     })
   },
-  
+  BLE_Switch:function(e){
+    console.log('on/off开关当前状态-----', e.detail.value);
+    if(e.detail.value){
+        wx.showToast({
+            title:'已开启', 
+            icon:'success', 
+            duration:1000
+            });
+        this.light1on();
+        }
+    else{
+        wx.showToast({
+            title:'已关闭', 
+            icon:'error', 
+            duration:1000
+        });
+        this.light1off();
+    }
+  },
+  BLE_Mode:function(e){
+      var str = e.detail.value;
+      console.log('夜灯模式发生切换,目前状态为-----', e.detail.value);
+      if(str == "lit"){
+        wx.showToast({
+          title:'切换到照明', 
+          icon:'success', 
+          duration:1000
+          });
+        this.light2on();
+      }
+      else if(str == "atm"){
+        wx.showToast({
+          title:'切换到氛围', 
+          icon:'success', 
+          duration:1000
+          });
+        this.light2off();
+      }
+  },
+  info_finding(){
+    wx.showLoading({
+      title: '正在查找蓝牙设备',
+    })
+  },
+  info_connecting(){
+    wx.showLoading({
+      title: '正在连接',
+    })
+  },
+  info_connected(){
+    wx.hideLoading(),
+    wx.showToast({
+      title:'连接成功', 
+      icon:'success', 
+      duration:1000
+      });
+  }
 })
 
