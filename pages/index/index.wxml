@@ -11,14 +11,14 @@
   <text>夜灯模式</text>
 </view>
 <view class='line'></view>
-<view class="container">
+<view class="container" style="color: {{text_color}}">
   <checkbox-group>
     <radio-group class='mode' bindchange='BLE_Mode' >
-      <radio color='#33a3dc' checked="true" value="lit">
+      <radio id="check_lit" color='#33a3dc' value="lit" disabled="{{radio_disabled}}" checked="{{radio1_checked}}">
         <text decode="true">&nbsp;照明</text>
       </radio>
       <text decode="true">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text>
-      <radio color='#33a3dc' value="atm">
+      <radio id="check_atm" color='#33a3dc' value="atm" disabled="{{radio_disabled}}" checked="{{radio2_checked}}">
         <text decode="true">&nbsp;氛围</text>
       </radio>
     </radio-group>

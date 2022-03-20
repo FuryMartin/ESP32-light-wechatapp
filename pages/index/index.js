@@ -6,7 +6,11 @@ Page({
   data: {
     'deviceId':'',
     'serviceId':'',
-    'characteristicId':''
+    'characteristicId':'',
+    radio_disabled: true,
+    text_color: 'gray',
+    radio1_checked:false,
+    radio2_checked:false,
   },
   onLoad() {
     this.bleInit();
@@ -208,6 +212,12 @@ Page({
             duration:1000
             });
         this.light1on();
+        this.setData({radio_disabled:!this.data.radio_disabled});
+        this.setData({text_color: 'black'});
+        this.setData({radio1_checked:!this.data.radio1_checked});
+        //console.log(this.data.radio_disabled);
+        //var mode_lit = document.getElementById('check_lit');
+        //mode_lit.style.disabled = 'false';
         }
     else{
         wx.showToast({
@@ -216,6 +226,10 @@ Page({
             duration:1000
         });
         this.light1off();
+        this.setData({radio_disabled:!this.data.radio_disabled});
+        this.setData({text_color: 'gray'});
+        this.setData({radio1_checked:!this.data.radio1_checked});
+        this.setData({radio2_checked:false});
     }
   },
   BLE_Mode:function(e){
