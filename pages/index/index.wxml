@@ -4,7 +4,7 @@
 </view>
 <view class='line'></view>
 <view class="container">
-  <switch id='power' color='#33a3dc' bindchange='BLE_Switch'>ON/OFF</switch>
+  <switch id='power' color='#33a3dc' bindchange='BLE_Switch' checked="{{power_checked}}">ON/OFF</switch>
 </view>
 <view class='blank'></view>
 <view class="title">
@@ -24,3 +24,7 @@
     </radio-group>
   </checkbox-group>
 </view>
+<view class='blank'></view>
+<button id="reconnect" type="primary" bindtap="BLE_reconnect" style="height: fit-content;background-color: #33a3dc;">
+  <text decode="true">断开重连</text>
+</button>

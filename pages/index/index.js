@@ -9,6 +9,7 @@ Page({
     'characteristicId':'',
     radio_disabled: true,
     text_color: 'gray',
+    power_checked:false,
     radio1_checked:false,
     radio2_checked:false,
   },
@@ -21,13 +22,14 @@ Page({
     wx.onBluetoothDeviceFound((res) => {
       res.devices.forEach((device) => {
         // 这里可以做一些过滤
-        console.log('Device Found', device)
+        if(device.name != "")
+          console.log('Device Found', device);
         //if(device.deviceId == "58:BF:25:9D:51:0E"){
         if(device.name == "ESP32-light"){  
         // 找到设备开始连接
+          wx.stopBluetoothDevicesDiscovery();
           this.info_connecting()
           this.bleConnection(device.deviceId);
-          wx.stopBluetoothDevicesDiscovery()
         }
       })
       // 找到要搜索的设备后，及时停止扫描
@@ -59,7 +61,9 @@ Page({
     var that = this
     wx.onBLECharacteristicValueChange((result) => {
       console.log('onBLECharacteristicValueChange',result.value)
+      console.log(result.value)
       let hex = that.ab2hex(result.value)
+      that.TxSwitcher(that.hextoString(hex))
       console.log('hextoString',that.hextoString(hex))
       console.log('hex',hex)
     })
@@ -70,7 +74,6 @@ Page({
       success: () => {
         // 连接成功，获取服务
         console.log('连接成功，获取服务')
-        this.info_connected()
         this.bleGetDeviceServices(deviceId)
       }
     })
@@ -79,13 +82,8 @@ Page({
     wx.getBLEDeviceServices({
       deviceId, // 搜索到设备的 deviceId
       success: (res) => {
-        console.log(res.services)
-        for (let i = 0; i < res.services.length; i++) {
-          if (res.services[i].isPrimary) {
-            // 可根据具体业务需要，选择一个主服务进行通信
-            this.bleGetDeviceCharacteristics(deviceId,res.services[i].uuid)
-          }
-        }
+        console.log("Services:", res.services)
+        this.bleGetDeviceCharacteristics(deviceId,res.services[0].uuid)
       }
     })
   },
@@ -96,8 +94,8 @@ Page({
       success: (res) => {
         for (let i = 0; i < res.characteristics.length; i++) {
           let item = res.characteristics[i]
-          console.log(item)
-          console.log(this.data.serviceId)
+          console.log("item:",item)
+          console.log("serviceId:",this.data.serviceId)
           if (item.properties.write) { // 该特征值可写
             // 本示例是向蓝牙设备发送一个 0x00 的 16 进制数据
             // 实际使用时，应根据具体设备协议发送数据
@@ -106,20 +104,14 @@ Page({
             // dataView.setUint8(0, 0)
             // let senddata = 'FF';
             // let buffer = this.hexString2ArrayBuffer(senddata);
-            var buffer = this.stringToBytes("getid")
             this.setData({
               'deviceId':deviceId,
               'serviceId':serviceId,
               'characteristicId':item.uuid
-            })
-            wx.writeBLECharacteristicValue({
-              deviceId,
-              serviceId,
-              characteristicId: item.uuid,
-              value: buffer,
-            })
+            });
+            this.get_pbCounter();
           }
-          if (item.properties.read) { // 改特征值可读
+          if (item.properties.read) { // 该特征值可读
             wx.readBLECharacteristicValue({
               deviceId,
               serviceId,
@@ -166,8 +158,10 @@ Page({
     )
     return hexArr.join('');
   },
-  light1on(){
-    var buffer = this.stringToBytes("light1on")
+  get_pbCounter()
+  {
+    console.log("获取pbCounter");
+    var buffer = this.stringToBytes("get_pbCounter")
     wx.writeBLECharacteristicValue({
       deviceId:this.data.deviceId,
       serviceId:this.data.serviceId,
@@ -175,8 +169,17 @@ Page({
       value: buffer,
     })
   },
-  light2on(){
-    var buffer = this.stringToBytes("light2on")
+  power_on(){
+    var buffer = this.stringToBytes("power_on")
+    wx.writeBLECharacteristicValue({
+      deviceId:this.data.deviceId,
+      serviceId:this.data.serviceId,
+      characteristicId:this.data.characteristicId,
+      value: buffer,
+    })
+  },
+  mode_lit(){
+    var buffer = this.stringToBytes("mode_lit")
     wx.writeBLECharacteristicValue({
       //deviceId:"58:BF:25:9D:51:0E",
       deviceId:this.data.deviceId,
@@ -185,8 +188,8 @@ Page({
       value: buffer,
     })
   },
-  light1off(){
-    var buffer = this.stringToBytes("light1off")
+  power_off(){
+    var buffer = this.stringToBytes("power_off")
     wx.writeBLECharacteristicValue({
       deviceId:this.data.deviceId,
       serviceId:this.data.serviceId,
@@ -194,8 +197,8 @@ Page({
       value: buffer,
     })
   },
-  light2off(){
-    var buffer = this.stringToBytes("light2off")
+  mode_atm(){
+    var buffer = this.stringToBytes("mode_atm")
     wx.writeBLECharacteristicValue({
       deviceId:this.data.deviceId,
       serviceId:this.data.serviceId,
@@ -211,23 +214,20 @@ Page({
             icon:'success', 
             duration:1000
             });
-        this.light1on();
-        this.setData({radio_disabled:!this.data.radio_disabled});
+        this.power_on();
         this.setData({text_color: 'black'});
+        this.setData({radio_disabled:!this.data.radio_disabled});
         this.setData({radio1_checked:!this.data.radio1_checked});
-        //console.log(this.data.radio_disabled);
-        //var mode_lit = document.getElementById('check_lit');
-        //mode_lit.style.disabled = 'false';
-        }
+    }
     else{
         wx.showToast({
             title:'已关闭', 
             icon:'error', 
             duration:1000
         });
-        this.light1off();
-        this.setData({radio_disabled:!this.data.radio_disabled});
+        this.power_off();
         this.setData({text_color: 'gray'});
+        this.setData({radio_disabled:!this.data.radio_disabled});
         this.setData({radio1_checked:!this.data.radio1_checked});
         this.setData({radio2_checked:false});
     }
@@ -241,7 +241,7 @@ Page({
           icon:'success', 
           duration:1000
           });
-        this.light2on();
+        this.mode_lit();
       }
       else if(str == "atm"){
         wx.showToast({
@@ -249,17 +249,19 @@ Page({
           icon:'success', 
           duration:1000
           });
-        this.light2off();
+        this.mode_atm();
       }
   },
   info_finding(){
     wx.showLoading({
       title: '正在查找蓝牙设备',
+      mask:true,
     })
   },
   info_connecting(){
     wx.showLoading({
       title: '正在连接',
+      mask:true,
     })
   },
   info_connected(){
@@ -267,8 +269,48 @@ Page({
     wx.showToast({
       title:'连接成功', 
       icon:'success', 
-      duration:1000
+      duration:1000,
       });
+  },
+  BLE_reconnect(){
+    wx.closeBluetoothAdapter({
+      success: (res) => {
+        console.log(res);
+        wx.showToast({
+          title:'蓝牙已断开',
+          icon:'success',
+          duration:500
+        });
+      },
+    });
+    this.bleInit();
+  },
+  TxSwitcher(str){
+    this.info_connected()
+    if(str == "pbCounter=0")
+    {
+      this.setData({power_checked:false})
+      this.setData({text_color: 'gray'});
+      this.setData({radio_disabled:true});
+      this.setData({radio1_checked:false});
+      this.setData({radio2_checked:false});
+    }
+    else if(str == "pbCounter=1")
+    {
+      this.setData({power_checked:true})
+      this.setData({text_color: 'black'});
+      this.setData({radio_disabled:false});
+      this.setData({radio1_checked:true});
+      this.setData({radio2_checked:false});
+    }
+    else if(str == "pbCounter=2")
+    {
+      this.setData({power_checked:true})
+      this.setData({text_color: 'black'});
+      this.setData({radio_disabled:false});
+      this.setData({radio1_checked:false});
+      this.setData({radio2_checked:true});
+    }
   }
 })
-
+  
